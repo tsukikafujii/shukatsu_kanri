@@ -77,8 +77,12 @@
   .no-action { color: #ccc; font-size: 13px; }
   .stars { color: #f5a623; font-size: 15px; letter-spacing: 2px; white-space: nowrap; }
   .stars.empty { color: #ddd; }
-  .mypage-link { display: inline-block; padding: 3px 10px; border-radius: 6px; background: #eef2ff; color: #4f46e5; font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; }
-  .mypage-link:hover { background: #4f46e5; color: white; }
+  .link-btn { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .link-btn.mypage { background: #eef2ff; color: #4f46e5; }
+  .link-btn.mypage:hover { background: #4f46e5; color: white; }
+  .link-btn.folder { background: #fff7ed; color: #c2410c; }
+  .link-btn.folder:hover { background: #c2410c; color: white; }
+  .form-hint { font-size: 11px; color: #aaa; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -110,8 +114,8 @@
   <select class="sort-sel" onchange="setSort(this.value)">
     <option value="deadline">ES締切が近い順</option>
     <option value="action">アクション期限順</option>
-    <option value="company">企業名順</option>
     <option value="star">志望度が高い順</option>
+    <option value="company">企業名順</option>
     <option value="added">追加順</option>
   </select>
 </div>
@@ -120,8 +124,16 @@
   <table>
     <thead>
       <tr>
-        <th>企業名</th><th>ステータス</th><th>志望度</th><th>ES締切</th>
-        <th>次のアクション</th><th>アクション期限</th><th>メモ</th><th>マイページ</th><th></th>
+        <th>企業名</th>
+        <th>ステータス</th>
+        <th>志望度</th>
+        <th>ES締切</th>
+        <th>次のアクション</th>
+        <th>アクション期限</th>
+        <th>メモ</th>
+        <th>資料</th>
+        <th>マイページ</th>
+        <th></th>
       </tr>
     </thead>
     <tbody id="table-body"></tbody>
@@ -161,6 +173,11 @@
     <div class="form-group"><label>次のアクション</label><input type="text" id="f-action" placeholder="例：志望動機を書く"></div>
     <div class="form-group"><label>アクション期限日</label><input type="date" id="f-action-date"></div>
     <div class="form-group"><label>メモ</label><textarea id="f-memo" placeholder="自由記入"></textarea></div>
+    <div class="form-group">
+      <label>&#128194; 資料フォルダURL（Google Drive）</label>
+      <input type="text" id="f-folder" placeholder="Google DriveフォルダのURLを貼り付け">
+      <div class="form-hint">Google Drive でフォルダを右クリック →「リンクをコピー」して貼り付け</div>
+    </div>
     <div class="form-group"><label>マイページURL</label><input type="text" id="f-mypage" placeholder="例：https://job.mynavi.jp/..."></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
@@ -208,7 +225,7 @@ function tag(n) {
 
 function starTag(n) {
   n = +n || 0;
-  if (n === 0) return '<span class="stars empty">☆☆☆☆☆</span>';
+  if (n===0) return '<span class="stars empty">☆☆☆☆☆</span>';
   return '<span class="stars">'+'★'.repeat(n)+'☆'.repeat(5-n)+'</span>';
 }
 
@@ -252,7 +269,7 @@ function render() {
   }).length;
 
   if (!list.length) {
-    tbody.innerHTML='<tr><td colspan="9" class="empty">企業を追加してください</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" class="empty">企業を追加してください</td></tr>';
     return;
   }
 
@@ -265,8 +282,9 @@ function render() {
       '<td>'+(e.deadline?'<div style="font-size:12px;color:#888">'+fmt(e.deadline)+'</div>':'')+tag(diff(e.deadline))+'</td>' +
       '<td>'+(e.action?esc(e.action):'<span class="no-action">—</span>')+'</td>' +
       '<td>'+(e.actionDate?'<div style="font-size:12px;color:#888">'+fmt(e.actionDate)+'</div>':'')+tag(diff(e.actionDate))+'</td>' +
-      '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#777">'+esc(e.memo||'—')+'</td>' +
-      '<td>'+(e.mypage?'<a class="mypage-link" href="'+esc(e.mypage)+'" target="_blank" rel="noopener">開く</a>':'<span class="no-action">—</span>')+'</td>' +
+      '<td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#777">'+esc(e.memo||'—')+'</td>' +
+      '<td>'+(e.folder?'<a class="link-btn folder" href="'+esc(e.folder)+'" target="_blank" rel="noopener">&#128194; 開く</a>':'<span class="no-action">—</span>')+'</td>' +
+      '<td>'+(e.mypage?'<a class="link-btn mypage" href="'+esc(e.mypage)+'" target="_blank" rel="noopener">開く</a>':'<span class="no-action">—</span>')+'</td>' +
       '<td><button class="btn-edit" onclick="openEdit('+e._id+')">編集</button></td>' +
     '</tr>';
   }).join('');
@@ -278,7 +296,7 @@ function openModal() {
   document.getElementById('overlay').classList.add('open');
   document.getElementById('modal-title').textContent='企業を追加';
   document.getElementById('edit-id').value='';
-  ['f-company','f-type','f-action','f-memo','f-mypage'].forEach(i=>document.getElementById(i).value='');
+  ['f-company','f-type','f-action','f-memo','f-folder','f-mypage'].forEach(i=>document.getElementById(i).value='');
   ['f-deadline','f-action-date'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('f-status').value='es';
   document.getElementById('f-star').value='0';
@@ -297,6 +315,7 @@ function openEdit(id) {
   document.getElementById('f-action').value=e.action||'';
   document.getElementById('f-action-date').value=e.actionDate||'';
   document.getElementById('f-memo').value=e.memo||'';
+  document.getElementById('f-folder').value=e.folder||'';
   document.getElementById('f-mypage').value=e.mypage||'';
 }
 
@@ -314,6 +333,7 @@ function saveEntry() {
     action:document.getElementById('f-action').value.trim(),
     actionDate:document.getElementById('f-action-date').value,
     memo:document.getElementById('f-memo').value.trim(),
+    folder:document.getElementById('f-folder').value.trim(),
     mypage:document.getElementById('f-mypage').value.trim(),
   };
   const eid = document.getElementById('edit-id').value;
@@ -327,9 +347,9 @@ function saveEntry() {
 }
 
 if (data.length===0) {
-  [{company:'〇〇テクノロジー株式会社',type:'IT・エンジニア職',status:'es',star:'4',deadline:'2026-05-20',action:'志望動機を書く',actionDate:'2026-05-15',memo:'OB訪問済み',mypage:''},
-   {company:'△△商事株式会社',type:'商社・営業職',status:'doc',star:'3',deadline:'2026-05-25',action:'面接対策',actionDate:'2026-05-18',memo:'',mypage:''},
-   {company:'□□フィナンシャル',type:'金融・総合職',status:'int1',star:'5',deadline:'',action:'一次面接の準備',actionDate:'2026-05-14',memo:'5/15 10:00 オンライン面接',mypage:''}
+  [{company:'〇〇テクノロジー株式会社',type:'IT・エンジニア職',status:'es',star:'4',deadline:'2026-05-20',action:'志望動機を書く',actionDate:'2026-05-15',memo:'OB訪問済み',folder:'',mypage:''},
+   {company:'△△商事株式会社',type:'商社・営業職',status:'doc',star:'3',deadline:'2026-05-25',action:'面接対策',actionDate:'2026-05-18',memo:'',folder:'',mypage:''},
+   {company:'□□フィナンシャル',type:'金融・総合職',status:'int1',star:'5',deadline:'',action:'一次面接の準備',actionDate:'2026-05-14',memo:'5/15 10:00 オンライン面接',folder:'',mypage:''}
   ].forEach((s,i)=>{s._id=i+1;data.push(s);});
   nextId=data.length+1; save();
 }
