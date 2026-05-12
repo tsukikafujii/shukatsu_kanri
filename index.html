@@ -34,9 +34,19 @@
   table { width: 100%; border-collapse: collapse; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
   thead { background: #1a1a2e; color: white; }
   th { padding: 13px 16px; text-align: left; font-size: 13px; font-weight: 600; white-space: nowrap; }
-  td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  td { padding: 10px 14px; font-size: 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #f8f9ff; }
+
+  /* Inline editing */
+  .edit-cell { cursor: pointer; position: relative; }
+  .edit-cell:hover { background: #f0f4ff !important; }
+  .edit-cell:hover::after { content: '✎'; position: absolute; top: 6px; right: 5px; font-size: 10px; color: #b0b8d4; pointer-events: none; }
+  .edit-cell input[type=text], .edit-cell input[type=date] { width: 100%; padding: 5px 8px; border: 1.5px solid #4f46e5; border-radius: 6px; font-size: 13px; font-family: inherit; background: white; }
+  .edit-cell select.inline-sel { font-size: 12px; padding: 4px 6px; border: 1.5px solid #4f46e5; border-radius: 6px; cursor: pointer; background: white; }
+  .star-cell { cursor: pointer; width: 74px; min-width: 74px; max-width: 74px; text-align: center; }
+  .star-cell:hover { background: #fffbf0 !important; }
+  .star-cell:hover .stars { opacity: 0.75; }
 
   .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
   .s-es      { background: #fff3cd; color: #856404; }
@@ -49,17 +59,19 @@
   .s-ng      { background: #f8d7da; color: #842029; }
   .s-pass    { background: #e2e3e5; color: #41464b; }
 
-  .days { font-weight: 700; padding: 3px 10px; border-radius: 20px; font-size: 13px; white-space: nowrap; }
+  .days { font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 12px; white-space: nowrap; display: inline-block; }
   .days.red    { background: #fde8eb; color: #e94560; }
   .days.yellow { background: #fff8e1; color: #e6a817; }
   .days.green  { background: #e8f5e9; color: #2e7d32; }
   .days.gray   { background: #f0f0f0; color: #888; }
-  .days.over   { background: #fde8eb; color: #999; text-decoration: line-through; }
+  .days.over   { background: #fde8eb; color: #bbb; text-decoration: line-through; }
+  .date-label  { font-size: 11px; color: #aaa; margin-bottom: 3px; }
 
-  .btn-edit { background: none; border: 1px solid #ddd; padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #555; margin-right: 4px; }
+  .btn-edit { background: none; border: 1px solid #ddd; padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #555; }
   .btn-edit:hover { background: #1a1a2e; color: white; border-color: #1a1a2e; }
-  .btn-del { background: none; border: 1px solid #fca5a5; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #ef4444; }
-  .btn-del:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+  .btn-del-modal { padding: 10px 18px; border-radius: 8px; border: 1.5px solid #fca5a5; background: white; color: #ef4444; font-size: 14px; cursor: pointer; }
+  .btn-del-modal:hover { background: #ef4444; color: white; border-color: #ef4444; }
 
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; justify-content: center; align-items: center; }
   .overlay.open { display: flex; }
@@ -70,20 +82,28 @@
   input[type=text], input[type=date], input[type=password], select, textarea { width: 100%; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: #1a1a2e; }
   textarea { resize: vertical; min-height: 72px; }
-  .modal-btns { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+  .modal-btns { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
+  .modal-btns-right { margin-left: auto; display: flex; gap: 12px; }
   .btn-cancel { padding: 10px 22px; border-radius: 8px; border: 1.5px solid #ddd; background: white; font-size: 14px; cursor: pointer; }
   .btn-save { padding: 10px 22px; border-radius: 8px; border: none; background: #1a1a2e; color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
+
   .empty { text-align: center; padding: 48px; color: #bbb; font-size: 15px; }
   .company-name { font-weight: 600; font-size: 14px; }
   .company-type { font-size: 12px; color: #aaa; margin-top: 2px; }
   .no-action { color: #ccc; font-size: 13px; }
-  .stars { color: #f5a623; font-size: 15px; letter-spacing: 2px; white-space: nowrap; }
+  .stars { color: #f5a623; font-size: 15px; letter-spacing: 1px; white-space: nowrap; }
   .stars.empty { color: #ddd; }
+
   .link-btn { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; }
   .link-btn.mypage { background: #eef2ff; color: #4f46e5; }
   .link-btn.mypage:hover { background: #4f46e5; color: white; }
   .link-btn.folder { background: #fff7ed; color: #c2410c; }
   .link-btn.folder:hover { background: #c2410c; color: white; }
+
+  .copy-btn { display: inline-flex; align-items: center; gap: 3px; margin-top: 5px; padding: 3px 8px; border-radius: 5px; font-size: 11px; color: #777; background: #f4f4f4; border: 1px solid #e0e0e0; cursor: pointer; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .copy-btn:hover { background: #e8e8e8; }
+  .copy-btn.copied { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+
   .form-hint { font-size: 11px; color: #aaa; margin-top: 4px; }
   .section-divider { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 1px; padding: 8px 0 4px; border-bottom: 1px solid #f0f0f0; margin-bottom: 16px; }
 </style>
@@ -128,12 +148,12 @@
       <tr>
         <th>企業名</th>
         <th>ステータス</th>
-        <th>志望度</th>
+        <th style="width:74px">志望度</th>
         <th>次のアクション</th>
         <th>アクション期限</th>
         <th>メモ</th>
         <th>資料</th>
-        <th>マイページ</th>
+        <th>マイページ / ID</th>
         <th></th>
       </tr>
     </thead>
@@ -186,8 +206,11 @@
     <div class="form-group"><label>マイページURL</label><input type="text" id="f-mypage" placeholder="例：https://job.mynavi.jp/..."></div>
 
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="tryClose()">キャンセル</button>
-      <button class="btn-save" onclick="saveEntry()">保存</button>
+      <button class="btn-del-modal" id="btn-del-modal" onclick="deleteFromModal()" style="display:none">削除</button>
+      <div class="modal-btns-right">
+        <button class="btn-cancel" onclick="tryClose()">キャンセル</button>
+        <button class="btn-save" onclick="saveEntry()">保存</button>
+      </div>
     </div>
   </div>
 </div>
@@ -220,13 +243,14 @@ function diff(d) {
   return Math.round((dt - today) / 86400000);
 }
 
-function tag(n) {
+function tag(n, dateStr) {
+  const datePart = dateStr ? '<div class="date-label">'+fmt(dateStr)+'</div>' : '';
   if (n===null) return '<span class="days gray">未設定</span>';
-  if (n<0)  return '<span class="days over">期限切れ</span>';
-  if (n===0) return '<span class="days red">今日！</span>';
-  if (n<=3)  return '<span class="days red">あと '+n+' 日</span>';
-  if (n<=7)  return '<span class="days yellow">あと '+n+' 日</span>';
-  return '<span class="days green">あと '+n+' 日</span>';
+  if (n<0)  return datePart+'<span class="days over">期限切れ</span>';
+  if (n===0) return datePart+'<span class="days red">今日！</span>';
+  if (n<=3)  return datePart+'<span class="days red">あと '+n+' 日</span>';
+  if (n<=7)  return datePart+'<span class="days yellow">あと '+n+' 日</span>';
+  return datePart+'<span class="days green">あと '+n+' 日</span>';
 }
 
 function starTag(n) {
@@ -280,21 +304,81 @@ function render() {
 
   tbody.innerHTML = list.map(e => {
     const st = ST[e.status]||{label:e.status,cls:''};
+    const loginSnip = e.loginid ? (e.loginid.length>20 ? e.loginid.slice(0,20)+'…' : e.loginid) : '';
+    const mypageCell =
+      (e.mypage ? '<a class="link-btn mypage" href="'+esc(e.mypage)+'" target="_blank" rel="noopener">開く</a>' : '') +
+      (e.loginid ? '<br><button class="copy-btn" onclick="copyId(event,\''+esc(e.loginid)+'\')" title="'+esc(e.loginid)+'">&#128203; '+esc(loginSnip)+'</button>' : '') +
+      (!e.mypage && !e.loginid ? '<span class="no-action">—</span>' : '');
     return '<tr>' +
       '<td><div class="company-name">'+esc(e.company)+'</div>'+(e.type?'<div class="company-type">'+esc(e.type)+'</div>':'')+'</td>' +
-      '<td><span class="badge '+st.cls+'">'+st.label+'</span></td>' +
-      '<td>'+starTag(e.star)+'</td>' +
-      '<td>'+(e.action?esc(e.action):'<span class="no-action">—</span>')+'</td>' +
-      '<td>'+(e.actionDate?'<div style="font-size:12px;color:#888">'+fmt(e.actionDate)+'</div>':'')+tag(diff(e.actionDate))+'</td>' +
+      '<td class="edit-cell" onclick="inlineStatus(this,'+e._id+')" title="クリックで変更"><span class="badge '+st.cls+'">'+st.label+'</span></td>' +
+      '<td class="star-cell" onclick="cycleStar('+e._id+')" title="クリックで変更">'+starTag(e.star)+'</td>' +
+      '<td class="edit-cell" onclick="inlineText(this,'+e._id+',\'action\')" title="クリックで編集">'+(e.action?esc(e.action):'<span class="no-action">—</span>')+'</td>' +
+      '<td class="edit-cell" onclick="inlineDate(this,'+e._id+',\'actionDate\')" title="クリックで変更">'+tag(diff(e.actionDate),e.actionDate)+'</td>' +
       '<td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#777">'+esc(e.memo||'—')+'</td>' +
       '<td>'+(e.folder?'<a class="link-btn folder" href="'+esc(e.folder)+'" target="_blank" rel="noopener">&#128194; 開く</a>':'<span class="no-action">—</span>')+'</td>' +
-      '<td>'+(e.mypage?'<a class="link-btn mypage" href="'+esc(e.mypage)+'" target="_blank" rel="noopener">開く</a>':'<span class="no-action">—</span>')+'</td>' +
-      '<td style="white-space:nowrap">' +
-        '<button class="btn-edit" onclick="openEdit('+e._id+')">編集</button>' +
-        '<button class="btn-del" onclick="deleteEntry('+e._id+')" title="削除">✕</button>' +
-      '</td>' +
+      '<td>'+mypageCell+'</td>' +
+      '<td style="white-space:nowrap"><button class="btn-edit" onclick="openEdit('+e._id+')">編集</button></td>' +
     '</tr>';
   }).join('');
+}
+
+function cycleStar(id) {
+  const e = data.find(x=>x._id===id); if(!e) return;
+  e.star = String((Math.min(Math.max(+e.star||0, 0), 3) + 1) % 4);
+  save(); render();
+}
+
+function inlineStatus(cell, id) {
+  if (cell.querySelector('select')) return;
+  const e = data.find(x=>x._id===id); if(!e) return;
+  const sel = document.createElement('select');
+  sel.className = 'inline-sel';
+  Object.entries(ST).forEach(([v,s]) => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = s.label;
+    if (v === e.status) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.onchange = () => { e.status = sel.value; save(); render(); };
+  sel.onblur = () => render();
+  cell.innerHTML = ''; cell.appendChild(sel); sel.focus();
+}
+
+function inlineText(cell, id, field) {
+  if (cell.querySelector('input')) return;
+  const e = data.find(x=>x._id===id); if(!e) return;
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.value = e[field] || '';
+  inp.onblur = () => { e[field] = inp.value.trim(); save(); render(); };
+  inp.onkeydown = ev => { if(ev.key==='Enter') inp.blur(); if(ev.key==='Escape') render(); };
+  cell.innerHTML = ''; cell.appendChild(inp); inp.focus();
+  inp.select();
+}
+
+function inlineDate(cell, id, field) {
+  if (cell.querySelector('input')) return;
+  const e = data.find(x=>x._id===id); if(!e) return;
+  const inp = document.createElement('input');
+  inp.type = 'date'; inp.value = e[field] || '';
+  inp.onchange = () => { e[field] = inp.value; save(); render(); };
+  inp.onblur = () => { e[field] = inp.value; save(); render(); };
+  inp.onkeydown = ev => { if(ev.key==='Escape') render(); };
+  cell.innerHTML = ''; cell.appendChild(inp); inp.focus();
+  try { inp.showPicker(); } catch(_) {}
+}
+
+function copyId(ev, text) {
+  ev.stopPropagation();
+  const btn = ev.currentTarget;
+  navigator.clipboard.writeText(text).catch(() => {
+    const el = document.createElement('textarea');
+    el.value = text; document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+  });
+  const orig = btn.innerHTML;
+  btn.classList.add('copied'); btn.innerHTML = '&#10003; コピーしました';
+  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = orig; }, 1500);
 }
 
 let nextId = data.length ? Math.max(...data.map(e=>e._id))+1 : 1;
@@ -318,6 +402,7 @@ function clearFields() {
 function openModal() {
   clearFields();
   document.getElementById('modal-title').textContent='企業を追加';
+  document.getElementById('btn-del-modal').style.display='none';
   document.getElementById('overlay').classList.add('open');
 }
 
@@ -328,13 +413,14 @@ function openEdit(id) {
   document.getElementById('f-company').value=e.company;
   document.getElementById('f-type').value=e.type||'';
   document.getElementById('f-status').value=e.status;
-  document.getElementById('f-star').value=e.star||'0';
+  document.getElementById('f-star').value=Math.min(Math.max(+e.star||0,0),3);
   document.getElementById('f-action').value=e.action||'';
   document.getElementById('f-action-date').value=e.actionDate||'';
   document.getElementById('f-memo').value=e.memo||'';
   document.getElementById('f-loginid').value=e.loginid||'';
   document.getElementById('f-folder').value=e.folder||'';
   document.getElementById('f-mypage').value=e.mypage||'';
+  document.getElementById('btn-del-modal').style.display='inline-block';
   document.getElementById('overlay').classList.add('open');
 }
 
@@ -353,11 +439,13 @@ function closeIfOverlay(ev) {
   if (ev.target === document.getElementById('overlay')) tryClose();
 }
 
-function deleteEntry(id) {
+function deleteFromModal() {
+  const eid = document.getElementById('edit-id').value; if(!eid) return;
+  const id = Number(eid);
   const e = data.find(x=>x._id===id); if(!e) return;
-  if (!confirm(esc(e.company)+'を削除しますか？\nこの操作は元に戻せません。')) return;
+  if (!confirm(e.company+'を削除しますか？\nこの操作は元に戻せません。')) return;
   data = data.filter(x=>x._id!==id);
-  save(); render();
+  save(); render(); closeModal();
 }
 
 function saveEntry() {
